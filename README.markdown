@@ -2,6 +2,9 @@
 
 Copyright (C) 2012 Romain Deveaud <romain.deveaud@gmail.com>
 
+Stand-alone functions built on top of mirimiri and lda-ruby.
+Aiming to extract contextual features from general corpora related to search scenario.
+
 License
 =======
 
