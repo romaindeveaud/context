@@ -15,6 +15,6 @@ class ConceptualElement
   end
 
   def p_in_coll index_path=Context::IndexPaths[:wiki_en],size=20
-    Context.prob_w index_path,@word,size
+    Context.prob_w index_path,@word.gsub(/-$/,''),size
   end
 end

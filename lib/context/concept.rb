@@ -66,10 +66,12 @@ class Concept
 #  NAACL'10: `Automatic Evaluation of Topic Coherence`
 #  EMNLP'12: `Exploring Topic Coherence over many models and many topics`
 #
-  def uci_coherence epsilon=1,index_path=Context::IndexPaths[:wiki_en]
+  def uci_coherence index_path,epsilon=1
     coherence = @elements.combination(2).inject(0.0) do |res,bigram|
 #Context.prob_w(index_path,"#{bigram.first.word} #{bigram.last.word}",20)*
-      t = (Context.prob_w(index_path,"#{bigram.first.word} #{bigram.last.word}",20)+epsilon)/((bigram.first.p_in_coll)*(bigram.last.p_in_coll))
+      w1 = bigram.first.word.gsub(/-$/,'')
+      w2 = bigram.last.word.gsub(/-$/,'')
+      t = (Context.prob_w(index_path,"#{w1} #{w2}",20)+epsilon)/((bigram.first.p_in_coll index_path)*(bigram.last.p_in_coll index_path))
       res + Math.log(t)
     end
 

@@ -4,7 +4,7 @@ require 'lda-ruby'
 require 'peach'
 
 class ConceptModel
-  attr_reader :concepts,:documents,:source,:nbdocs,:nbterms,:query,:total_coherence,:doc_scores,:doc_names,:theta,:entropy_coherence,:avg_coherence
+  attr_reader :concepts,:documents,:source,:nbdocs,:nbterms,:query,:total_coherence,:doc_scores,:doc_names,:theta,:entropy_coherence,:avg_coherence,:avg_query_coherence
 
   def ConceptModel.parse_hdp str
     concepts = []
@@ -39,6 +39,7 @@ class ConceptModel
     corpus = Lda::Corpus.new
 
     @documents,@doc_scores,@doc_names = Context.feedback_docs Context::IndexPaths[@source],@query,@nbdocs
+
     @documents.each do |d|
       doc = Lda::TextDocument.new corpus,d
       corpus.add_document doc
@@ -87,6 +88,27 @@ class ConceptModel
     end
   end
 
+  def model_divergence
+    topics_i = Array.new(@concepts.count) { |i| i }
+
+    sum_kl = topics_i.combination(2).inject(0.0) do |kl,topics|
+      ti = topics.first
+      tj = topics.last
+      begin
+        kl + 0.upto(@vocab.count-1).inject(0.0) do |res,w_i| 
+          res + ( Math.exp(@beta[ti][w_i])*Math.log(Math.exp(@beta[ti][w_i])/Math.exp(@beta[tj][w_i])) ) #+ Math.exp(@beta[tj][w_i])*Math.log(Math.exp(@beta[tj][w_i])/Math.exp(@beta[ti][w_i])) )
+        end
+      rescue
+        kl + 0.0
+      end
+    end
+
+    sum_kl /= @concepts.count*(@concepts.count-1)
+#    sum_kl = max_kl if sum_kl.nan? || sum_kl.infinite? 
+
+    sum_kl
+  end
+
   def to_s
     @concepts.collect do |c|
       "#{c.coherence/@total_coherence} => [#{c.elements.collect do |e|
@@ -110,13 +132,22 @@ class ConceptModel
     @concepts << concept
   end
 
-  def avg_model_coherence
+  def avg_model_coherence index_path=Context::IndexPaths[:wiki_en]
     if @documents.empty?
       @avg_coherence = 0.0 
     else
-      @avg_coherence = @concepts.inject(0.0) { |res,c| res + c.uci_coherence }/@concepts.count #if @avg_coherence.nil?
+      @avg_coherence = @concepts.inject(0.0) { |res,c| res + c.uci_coherence(index_path) }/@concepts.count #if @avg_coherence.nil?
     end
     @avg_coherence
+  end
+
+  def avg_model_query_coherence index_path=Context::IndexPaths[:wiki_en]
+    if @documents.empty?
+      @avg_query_coherence = 0.0 
+    else
+      @avg_query_coherence = @concepts.inject(0.0) { |res,c| res + c.coherence*c.uci_coherence(index_path) }/@concepts.count #if @avg_coherence.nil?
+    end
+    @avg_query_coherence
   end
 
   def entropy_model_coherence

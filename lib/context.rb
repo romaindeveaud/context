@@ -39,6 +39,14 @@ module Context
     :gov2          => '/distant/index_clueweb/disk3/GOV2_index'
   }
 
+  IndexPathsCluster = {
+    :web_en        => '/local_disk/oroshi/index_clueweb/disk2/ClueWeb09_English_1_sDocs',
+    :web_nospam    => '/local_disk/oroshi/index_clueweb/disk1/ClueWeb09_English_1noSpam',
+    :robust        => '/local_disk/oroshi/data/Robust04',
+    :wt10g         => '/local_disk/oroshi/index_clueweb/disk3/WT10g_index',
+    :gov2          => '/local_disk/oroshi/index_clueweb/disk3/GOV2_index'
+  }
+
   # #
   # From the SIGKDD 2007 paper : "Exploiting underrepresented query aspects for automatic query expansion"
   def Context.query_aspects q
